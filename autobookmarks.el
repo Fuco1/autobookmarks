@@ -124,8 +124,7 @@ Function should return non-nil if it restored the buffer."
 (defun abm-restore-file (entry)
   (-let (((file &keys :type type) entry))
     (when (eq type :file)
-      (find-file file)
-      t)))
+      (find-file file))))
 
 (defun abm-handle-opened-directory ()
   (let ((dir (file-truename default-directory)))
@@ -151,8 +150,7 @@ Function should return non-nil if it restored the buffer."
 (defun abm-restore-directory (entry)
   (-let (((dir &keys :type type) entry))
     (when (eq type :dired)
-      (find-file dir)
-      t)))
+      (find-file dir))))
 
 (defun abm-handle-killed-buffer ()
   (unless (equal " " (substring (buffer-name) 0 1))
