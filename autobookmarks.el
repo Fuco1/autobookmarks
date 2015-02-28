@@ -5,7 +5,7 @@
 ;; Author: Matúš Goljer <matus.goljer@gmail.com>
 ;; Maintainer: Matúš Goljer <matus.goljer@gmail.com>
 ;; Version: 0.0.1
-;; Created: 14th February 2014
+;; Created: 28th February 2015
 ;; Package-requires: ((dash "2.10.0"))
 ;; Keywords: files
 
