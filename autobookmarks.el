@@ -27,6 +27,8 @@
 ;;; Code:
 
 (require 'dash)
+(require 'bookmark+ nil t)
+(require 'bookmark)
 
 (defgroup autobookmarks ()
   "Save recently visited files and buffers."
@@ -55,9 +57,9 @@ A buffer is added to this list as soon as it is closed.")
 
 (defun abm-recent-buffers () abm-recent-buffers)
 
-(defcustom abm-visited-buffer-hooks '((find-file-hook . abm-handle-opened-file)
-                                      (write-file-functions . abm-handle-opened-file)
-                                      (dired-mode-hook . abm-handle-opened-directory))
+(defcustom abm-visited-buffer-hooks '((find-file-hook . abm-handle-visited-buffer)
+                                      (write-file-functions . abm-handle-visited-buffer)
+                                      (dired-mode-hook . abm-handle-visited-buffer))
   "Hooks used to detect visited buffers."
   :type '(repeat
           (cons
@@ -67,7 +69,7 @@ A buffer is added to this list as soon as it is closed.")
 
 (defcustom abm-killed-buffer-functions '(
                                          abm-handle-killed-file
-                                         abm-handle-killed-directory
+                                         abm-handle-killed-dired
                                          )
   "Functions used to handle killed buffers.
 
@@ -75,16 +77,30 @@ Function should return non-nil if it handled the buffer."
   :type 'hook
   :group 'autobookmarks)
 
-(defcustom abm-restore-buffer-functions '(
-                                          abm-restore-file
-                                          abm-restore-directory
-                                          )
-  "Functions used to restore killed buffers.
+(defun abm--make-record ()
+  "Call `bookmark-make-record' and change some values to more meaningful defaults."
+  (let ((record (--remove (memq (car it) '(
+                                           front-context-string
+                                           rear-context-string
+                                           front-context-region-string
+                                           rear-context-region-string
+                                           ))
+                          (cdr (bookmark-make-record)))))
+    (cons (or (cdr (assoc 'filename record))
+              (cdr (assoc 'buffer-name record)))
+          record)))
 
-Function should return non-nil if it restored the buffer."
-  :type 'hook
-  :group 'autobookmarks)
+(defmacro abm--move-bookmark (bookmark from to)
+  `(progn
+     (unless (assoc (car ,bookmark) ,to)
+       (push ,bookmark ,to))
+     (setq ,from (--remove (equal (car ,bookmark) (car it)) ,from))))
 
+(defun abm--add-bookmark-to-visited (bookmark)
+  (abm--move-bookmark bookmark abm-recent-buffers abm-visited-buffers))
+
+(defun abm--add-bookmark-to-recent (bookmark)
+  (abm--move-bookmark bookmark abm-visited-buffers abm-recent-buffers))
 
 (defun abm-save-to-file ()
   (interactive)
@@ -95,84 +111,62 @@ Function should return non-nil if it restored the buffer."
 
 (defun abm-load-from-file ()
   (interactive)
-  (load-file abm-file)
-  (setq abm-recent-buffers (-concat abm-recent-buffers abm-visited-buffers))
-  (setq abm-visited-buffers nil))
+  (when (file-exists-p abm-file)
+    (load-file abm-file)
+    (setq abm-recent-buffers (-concat abm-recent-buffers abm-visited-buffers))
+    (setq abm-visited-buffers nil)))
 
-(defun abm-handle-opened-file ()
-  "Handle opened file buffer"
-  (let ((file (buffer-file-name)))
-    (unless (assoc file abm-visited-buffers)
-      (push (cons file (list :type :file)) abm-visited-buffers))
-    (setq abm-recent-buffers
-          (--remove (and (equal (car it) file)
-                         (eq (plist-get (cdr it) :type) :file))
-                    abm-recent-buffers)))
+(abm-load-from-file)
+
+;; handlers
+
+(defun abm-handle-visited-buffer ()
+  "Handle opened buffer"
+  (let ((record (abm--make-record)))
+    (abm--add-bookmark-to-visited record))
   (abm-save-to-file))
 
 (defun abm-handle-killed-file ()
+  "Handle killed file buffer."
   (when (buffer-file-name)
-    (let ((file (buffer-file-name)))
-      (unless (assoc file abm-recent-buffers)
-        (push (cons file (list :type :file)) abm-recent-buffers))
-      (setq abm-visited-buffers
-            (--remove (and (equal (car it) file)
-                           (eq (plist-get (cdr it) :type) :file))
-                      abm-visited-buffers)))
-    t))
+    (let ((record (abm--make-record)))
+      (abm--add-bookmark-to-recent record))))
 
-(defun abm-restore-file (entry)
-  (-let (((file &keys :type type) entry))
-    (when (eq type :file)
-      (find-file file))))
-
-(defun abm-handle-opened-directory ()
-  (let ((dir (file-truename default-directory)))
-    (unless (assoc dir abm-visited-buffers)
-      (push (cons dir (list :type :dired)) abm-visited-buffers))
-    (setq abm-recent-buffers
-          (--remove (and (equal (car it) dir)
-                         (eq (plist-get (cdr it) :type) :dired))
-                    abm-recent-buffers)))
-  (abm-save-to-file))
-
-(defun abm-handle-killed-directory ()
+(defun abm-handle-killed-dired ()
+  "Handle killed dired buffer."
   (when (eq major-mode 'dired-mode)
-    (let ((dir (file-truename default-directory)))
-      (unless (assoc dir abm-recent-buffers)
-        (push (cons dir (list :type :dired)) abm-recent-buffers))
-      (setq abm-visited-buffers
-            (--remove (and (equal (car it) dir)
-                           (eq (plist-get (cdr it) :type) :dired))
-                      abm-visited-buffers)))
-    t))
-
-(defun abm-restore-directory (entry)
-  (-let (((dir &keys :type type) entry))
-    (when (eq type :dired)
-      (find-file dir))))
+    (let ((record (abm--make-record)))
+      (abm--add-bookmark-to-recent record))))
 
 (defun abm-handle-killed-buffer ()
+  "Run \"killed-buffer\" handlers.
+
+The list is customizable via `abm-killed-buffer-functions'."
   (unless (equal " " (substring (buffer-name) 0 1))
     (run-hook-with-args-until-success 'abm-killed-buffer-functions)
     (abm-save-to-file)))
 
-(defun abm-restore-killed-buffer (entry)
-  (run-hook-with-args-until-success 'abm-restore-buffer-functions entry))
+;; visit the stored bookmark
+
+(defun abm-restore-killed-buffer (bookmark)
+  (bookmark-jump bookmark))
+
+;; minor mode
 
 (define-minor-mode autobookmarks-mode
   "Autobookmarks."
   :group 'autobookmarks
+  :global t
   (if autobookmarks-mode
       (progn
         (add-hook 'kill-emacs-hook 'abm-save-to-file)
         (--each abm-visited-buffer-hooks
-          (add-hook (car it) (cdr it)))
-        (add-hook 'kill-buffer-hook 'abm-track-killed-buffer))
+          (add-hook (car it) (cdr it) :append))
+        (add-hook 'kill-buffer-hook 'abm-handle-killed-buffer))
     (remove-hook 'kill-emacs-hook 'abm-save-to-file)
     (--each abm-visited-buffer-hooks
       (remove-hook (car it) (cdr it)))
-    (remove-hook 'kill-buffer-hook 'abm-track-killed-buffer)))
+    (remove-hook 'kill-buffer-hook 'abm-handle-killed-buffer)))
 
 (provide 'autobookmarks)
 ;;; autobookmarks.el ends here
