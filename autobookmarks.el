@@ -67,6 +67,17 @@ A buffer is added to this list as soon as it is closed.")
            (function :tag "Function")))
   :group 'autobookmarks)
 
+(defcustom abm-ignore-buffers '(
+                                "\\.ido\\.last"
+                                "\\.git"
+                                "\\.svn"
+                                )
+  "List of regular expressions to ignore buffers.
+
+If filename matches the expression it is ignored."
+  :type '(repeat string)
+  :group 'autobookmarks)
+
 (defcustom abm-killed-buffer-functions '(
                                          abm-handle-killed-file
                                          abm-handle-killed-dired
@@ -90,11 +101,14 @@ Function should return non-nil if it handled the buffer."
               (cdr (assoc 'buffer-name record)))
           record)))
 
+;; TODO: ugly as fuck macro
 (defmacro abm--move-bookmark (bookmark from to)
-  `(progn
-     (unless (assoc (car ,bookmark) ,to)
-       (push ,bookmark ,to))
-     (setq ,from (--remove (equal (car ,bookmark) (car it)) ,from))))
+  `(let ((filename (cdr (assoc 'filename ,bookmark))))
+     (when (and filename
+                (--none? (string-match-p it filename) abm-ignore-buffers))
+       (unless (assoc (car ,bookmark) ,to)
+         (push ,bookmark ,to))
+       (setq ,from (--remove (equal (car ,bookmark) (car it)) ,from)))))
 
 (defun abm--add-bookmark-to-visited (bookmark)
   (abm--move-bookmark bookmark abm-recent-buffers abm-visited-buffers))
