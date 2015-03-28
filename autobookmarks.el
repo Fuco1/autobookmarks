@@ -75,7 +75,7 @@ A buffer is added to this list as soon as it is closed.")
   "List of regular expressions to ignore buffers.
 
 If filename matches the expression it is ignored."
-  :type '(repeat string)
+  :type '(repeat regexp)
   :group 'autobookmarks)
 
 (defcustom abm-killed-buffer-functions '(
