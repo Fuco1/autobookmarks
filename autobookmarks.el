@@ -119,7 +119,7 @@ Function should return non-nil if it handled the buffer."
 (defun abm-remove-recent (regexp)
   "Remove matching bookmarks from `abm-recent-buffers'."
   (interactive "sRegexp to match and remove: ")
-  (setq abm-recent-buffers (--filter (string-match-p regexp (car it)) abm-recent-buffers)))
+  (setq abm-recent-buffers (--remove (string-match-p regexp (car it)) abm-recent-buffers)))
 
 (defun abm-save-to-file ()
   (interactive)
