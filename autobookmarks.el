@@ -35,7 +35,7 @@
   :group 'files
   :prefix "abm-")
 
-(defcustom abm-file "~/.emacs.d/autobookmarks"
+(defcustom abm-file (locate-user-emacs-file "autobookmarks")
   "File where the bookmark data is persisted."
   :type 'file
   :group 'autobookmarks)
