@@ -134,7 +134,7 @@ Function should return non-nil if it handled the buffer."
   (interactive)
   (when (file-exists-p abm-file)
     (load-file abm-file)
-    (setq abm-recent-buffers (-concat abm-recent-buffers abm-visited-buffers))
+    (setq abm-recent-buffers (-concat abm-visited-buffers abm-recent-buffers))
     (setq abm-visited-buffers nil)))
 
 (abm-load-from-file)
