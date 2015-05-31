@@ -103,20 +103,30 @@ Function should return non-nil if it handled the buffer."
               (cdr (assoc 'buffer-name record)))
           record)))
 
-;; TODO: ugly as fuck macro
-(defmacro abm--move-bookmark (bookmark from to)
-  `(let ((filename (cdr (assoc 'filename ,bookmark))))
-     (when (and filename
-                (--none? (string-match-p it filename) abm-ignore-buffers))
-       (unless (assoc (car ,bookmark) ,to)
-         (push ,bookmark ,to))
-       (setq ,from (--remove (equal (car ,bookmark) (car it)) ,from)))))
+(defun abm--remove-bookmark (bookmark list)
+  "Remove BOOKMARK from bookmark list LIST."
+  (--remove (equal (car bookmark) (car it)) list))
+
+(defun abm--process-bookmark-p (bookmark)
+  "Test if we should process this BOOKMARK.
+
+List of ignored buffers is customizable via `abm-ignore-buffers'."
+  (let ((filename (cdr (assoc 'filename bookmark))))
+    (and filename (--none? (string-match-p it filename) abm-ignore-buffers))))
 
 (defun abm--add-bookmark-to-visited (bookmark)
-  (abm--move-bookmark bookmark abm-recent-buffers abm-visited-buffers))
+  (when (abm--process-bookmark-p bookmark)
+    (let ((bookmark (or (--first (equal (car bookmark) (car it)) abm-recent-buffers) bookmark)))
+      (unless (assoc (car bookmark) abm-visited-buffers)
+        (push bookmark abm-visited-buffers))
+      (setq abm-recent-buffers (abm--remove-bookmark bookmark abm-recent-buffers)))))
 
 (defun abm--add-bookmark-to-recent (bookmark)
-  (abm--move-bookmark bookmark abm-visited-buffers abm-recent-buffers))
+  (when (abm--process-bookmark-p bookmark)
+    (let ((bookmark (or (--first (equal (car bookmark) (car it)) abm-visited-buffers) bookmark)))
+      (unless (assoc (car bookmark) abm-recent-buffers)
+        (push bookmark abm-recent-buffers))
+      (setq abm-visited-buffers (abm--remove-bookmark bookmark abm-visited-buffers)))))
 
 (defun abm-remove-recent (regexp)
   "Remove matching bookmarks from `abm-recent-buffers'."
