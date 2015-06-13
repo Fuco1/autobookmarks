@@ -131,6 +131,8 @@ List of ignored buffers is customizable via `abm-ignore-buffers'."
 (defun abm-remove-recent (regexp)
   "Remove matching bookmarks from `abm-recent-buffers'."
   (interactive "sRegexp to match and remove: ")
+  (when (equal regexp "")
+    (user-error "The regexp to match against is empty"))
   (setq abm-recent-buffers (--remove (string-match-p regexp (car it)) abm-recent-buffers)))
 
 (defun abm-save-to-file ()
