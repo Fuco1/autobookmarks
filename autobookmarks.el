@@ -27,7 +27,7 @@
 ;;; Code:
 
 (require 'dash)
-(require 'bookmark+ nil t)
+(require 'cl-lib)
 (require 'bookmark)
 
 (defgroup autobookmarks ()
@@ -97,13 +97,15 @@ Function should return non-nil if it handled the buffer."
 
 (defun abm--make-record ()
   "Call `bookmark-make-record' and change some values to more meaningful defaults."
-  (let ((record (--remove (memq (car it) '(
+  (let* ((record (--remove (memq (car it) '(
                                            front-context-string
                                            rear-context-string
                                            front-context-region-string
                                            rear-context-region-string
                                            ))
-                          (cdr (bookmark-make-record)))))
+                          (cdr (bookmark-make-record))))
+         (record (-concat record (list (cons 'time (current-time))
+                                       (cons 'visits 0)))))
     (cons (or (cdr (assoc 'filename record))
               (cdr (assoc 'buffer-name record)))
           record)))
@@ -196,8 +198,12 @@ The list is customizable via `abm-killed-buffer-functions'."
     (abm-save-to-file)))
 
 ;; visit the stored bookmark
-
 (defun abm-restore-killed-buffer (bookmark)
+  "Restore killed buffer BOOKMARK."
+  (-when-let (visits (assq 'visits (cdr bookmark)))
+    (incf (cdr visits)))
+  (-when-let (time (assq 'time (cdr bookmark)))
+    (setf (cdr time) (current-time)))
   (bookmark-jump bookmark))
 
 ;; minor mode
