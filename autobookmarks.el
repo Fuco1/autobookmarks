@@ -88,6 +88,7 @@ If filename matches the expression it is ignored."
 (defcustom abm-killed-buffer-functions '(
                                          abm-handle-killed-file
                                          abm-handle-killed-dired
+                                         abm-handle-killed-info
                                          )
   "Functions used to handle killed buffers.
 
@@ -186,6 +187,12 @@ Additionally, before saving the data, it filters the
 (defun abm-handle-killed-dired ()
   "Handle killed dired buffer."
   (when (eq major-mode 'dired-mode)
+    (let ((record (abm--make-record)))
+      (abm--add-bookmark-to-recent record))))
+
+(defun abm-handle-killed-info ()
+  "Handle killed info buffer."
+  (when (eq major-mode 'Info-mode)
     (let ((record (abm--make-record)))
       (abm--add-bookmark-to-recent record))))
 
