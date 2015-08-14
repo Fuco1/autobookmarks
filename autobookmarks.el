@@ -178,6 +178,8 @@ Additionally, before saving the data, it filters the
     (abm--add-bookmark-to-visited record))
   (abm-save-to-file))
 
+;; TODO: take care of the repetition here?  Will we ever do something
+;; else than make record and push it?
 (defun abm-handle-killed-file ()
   "Handle killed file buffer."
   (when (buffer-file-name)
