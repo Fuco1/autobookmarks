@@ -162,6 +162,7 @@ Additionally, before saving the data, it filters the
     (insert (format "(setq abm-recent-buffers '%S)" abm-recent-buffers))))
 
 (defun abm-load-from-file ()
+  "Load saved bookmarks."
   (interactive)
   (when (file-exists-p abm-file)
     (load-file abm-file)
@@ -173,7 +174,7 @@ Additionally, before saving the data, it filters the
 ;; handlers
 
 (defun abm-handle-visited-buffer ()
-  "Handle opened buffer"
+  "Handle opened buffer."
   (let ((record (abm--make-record)))
     (abm--add-bookmark-to-visited record))
   (abm-save-to-file))
