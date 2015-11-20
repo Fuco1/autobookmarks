@@ -156,10 +156,12 @@ Additionally, before saving the data, it filters the
                                       ;; minus "current - bookmark last used timestamp" (= number of days since last use)
                                       (time-subtract (current-time) (cdr (assoc 'time it))))
                                      abm-recent-buffers))
-  (with-temp-file abm-file
-    (insert ";; This file is created automatically by autobookmarks.el\n\n")
-    (insert (format "(setq abm-visited-buffers '%S)\n" abm-visited-buffers))
-    (insert (format "(setq abm-recent-buffers '%S)" abm-recent-buffers))))
+  (let ((print-level nil)
+        (print-length nil))
+    (with-temp-file abm-file
+      (insert ";; This file is created automatically by autobookmarks.el\n\n")
+      (insert (format "(setq abm-visited-buffers '%S)\n" abm-visited-buffers))
+      (insert (format "(setq abm-recent-buffers '%S)" abm-recent-buffers)))))
 
 (defun abm-load-from-file ()
   "Load saved bookmarks."
