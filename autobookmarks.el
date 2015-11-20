@@ -6,7 +6,7 @@
 ;; Maintainer: Matúš Goljer <matus.goljer@gmail.com>
 ;; Version: 0.0.1
 ;; Created: 28th February 2015
-;; Package-requires: ((dash "2.10.0"))
+;; Package-requires: ((dash "2.10.0") (cl-lib "0.5"))
 ;; Keywords: files
 
 ;; This program is free software; you can redistribute it and/or
@@ -213,7 +213,7 @@ The list is customizable via `abm-killed-buffer-functions'."
 (defun abm-restore-killed-buffer (bookmark)
   "Restore killed buffer BOOKMARK."
   (-when-let (visits (assq 'visits (cdr bookmark)))
-    (incf (cdr visits)))
+    (cl-incf (cdr visits)))
   (-when-let (time (assq 'time (cdr bookmark)))
     (setf (cdr time) (current-time)))
   (bookmark-jump bookmark))
