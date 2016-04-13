@@ -143,6 +143,13 @@ List of ignored buffers is customizable via `abm-ignore-buffers'."
     (user-error "The regexp to match against is empty"))
   (setq abm-recent-buffers (--remove (string-match-p regexp (car it)) abm-recent-buffers)))
 
+;; TODO: add intelligent collapsing of dired bookmarks into a file (=
+;; top level) bookmark.  Instead of saving
+;; - /foo
+;; - /foo/bar
+;; - /foo/bar/baz
+;; - /foo/bar/baz/file.txt
+;; save just /foo/bar/baz/file.txt
 (defun abm-save-to-file ()
   "Save visited and recent buffers to file.
 
