@@ -154,7 +154,7 @@ Additionally, before saving the data, it filters the
                                       ;; old threshold in days
                                       (days-to-time abm-old-bookmark-threshold)
                                       ;; minus "current - bookmark last used timestamp" (= number of days since last use)
-                                      (time-subtract (current-time) (cdr (assoc 'time it))))
+                                      (time-subtract (current-time) (or (cdr (assoc 'time it)) (current-time))))
                                      abm-recent-buffers))
   (let ((print-level nil)
         (print-length nil))
