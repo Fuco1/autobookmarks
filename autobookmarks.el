@@ -78,6 +78,7 @@ A buffer is added to this list as soon as it is closed.")
                                 "\\.svn"
                                 "log\\'"
                                 "cache"
+                                "#\\'"
                                 )
   "List of regular expressions to ignore buffers.
 
