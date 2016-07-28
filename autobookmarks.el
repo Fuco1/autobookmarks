@@ -158,12 +158,14 @@ Additionally, before saving the data, it filters the
 `abm-recent-buffers' list and removes bookmarks older than
 `abm-old-bookmark-threshold'."
   (interactive)
-  (setq abm-recent-buffers (--remove (time-less-p
-                                      ;; old threshold in days
-                                      (days-to-time abm-old-bookmark-threshold)
-                                      ;; minus "current - bookmark last used timestamp" (= number of days since last use)
-                                      (time-subtract (current-time) (or (cdr (assoc 'time it)) (current-time))))
-                                     abm-recent-buffers))
+  ;; remove too old bookmarks
+  (setq abm-recent-buffers (--remove
+                            (time-less-p
+                             ;; old threshold in days
+                             (days-to-time abm-old-bookmark-threshold)
+                             ;; minus "current - bookmark last used timestamp" (= number of days since last use)
+                             (time-subtract (current-time) (or (cdr (assoc 'time it)) (current-time))))
+                            abm-recent-buffers))
   (let ((print-level nil)
         (print-length nil))
     (with-temp-file abm-file
