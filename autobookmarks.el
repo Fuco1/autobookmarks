@@ -134,6 +134,9 @@ List of ignored buffers is customizable via `abm-ignore-buffers'."
   (when (abm--process-bookmark-p bookmark)
     (let ((bookmark (or (--first (equal (car bookmark) (car it)) abm-visited-buffers) bookmark)))
       (unless (assoc (car bookmark) abm-recent-buffers)
+        ;; remove all bookmarks which point to a parent of new bookmark
+        (setq abm-recent-buffers
+              (--remove (string-prefix-p (car it) (car bookmark)) abm-recent-buffers))
         (push bookmark abm-recent-buffers))
       (setq abm-visited-buffers (abm--remove-bookmark bookmark abm-visited-buffers)))))
 
@@ -144,13 +147,6 @@ List of ignored buffers is customizable via `abm-ignore-buffers'."
     (user-error "The regexp to match against is empty"))
   (setq abm-recent-buffers (--remove (string-match-p regexp (car it)) abm-recent-buffers)))
 
-;; TODO: add intelligent collapsing of dired bookmarks into a file (=
-;; top level) bookmark.  Instead of saving
-;; - /foo
-;; - /foo/bar
-;; - /foo/bar/baz
-;; - /foo/bar/baz/file.txt
-;; save just /foo/bar/baz/file.txt
 (defun abm-save-to-file ()
   "Save visited and recent buffers to file.
 
