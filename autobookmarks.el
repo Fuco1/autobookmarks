@@ -154,6 +154,9 @@ Additionally, before saving the data, it filters the
 `abm-recent-buffers' list and removes bookmarks older than
 `abm-old-bookmark-threshold'."
   (interactive)
+  (unless abm--initialized
+    (abm-load-from-file)
+    (setq abm--initialized t))
   ;; remove too old bookmarks
   (setq abm-recent-buffers (--remove
                             (time-less-p
@@ -168,6 +171,9 @@ Additionally, before saving the data, it filters the
       (insert ";; This file is created automatically by autobookmarks.el\n\n")
       (insert (format "(setq abm-visited-buffers '%S)\n" abm-visited-buffers))
       (insert (format "(setq abm-recent-buffers '%S)" abm-recent-buffers)))))
+
+(defvar abm--initialized nil
+  "Non-nil means we initialized the bookmark list from the file.")
 
 (defun abm-load-from-file ()
   "Load saved bookmarks."
