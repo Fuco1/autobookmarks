@@ -232,6 +232,7 @@ The list is customizable via `abm-killed-buffer-functions'."
 
 ;; minor mode
 
+;;;###autoload
 (define-minor-mode autobookmarks-mode
   "Autobookmarks."
   :group 'autobookmarks
