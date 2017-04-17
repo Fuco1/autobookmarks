@@ -177,7 +177,9 @@ Additionally, before saving the data, it filters the
     (setq abm-recent-buffers (-concat abm-visited-buffers abm-recent-buffers))
     (setq abm-visited-buffers nil)))
 
-(add-hook 'after-init-hook 'abm-load-from-file)
+(if after-init-time
+    (abm-load-from-file)
+  (add-hook 'after-init-hook 'abm-load-from-file))
 
 ;; handlers
 
