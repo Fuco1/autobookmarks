@@ -100,12 +100,12 @@ Function should return non-nil if it handled the buffer."
 (defun abm--make-record ()
   "Call `bookmark-make-record' and change some values to more meaningful defaults."
   (let* ((record (--remove (memq (car it) '(
-                                           front-context-string
-                                           rear-context-string
-                                           front-context-region-string
-                                           rear-context-region-string
-                                           ))
-                          (cdr (bookmark-make-record))))
+                                            front-context-string
+                                            rear-context-string
+                                            front-context-region-string
+                                            rear-context-region-string
+                                            ))
+                           (cdr (bookmark-make-record))))
          (record (-concat record (list (cons 'time (current-time))
                                        (cons 'visits 0)))))
     (cons (or (cdr (assoc 'filename record))
