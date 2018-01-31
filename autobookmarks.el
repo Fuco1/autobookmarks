@@ -147,6 +147,14 @@ List of ignored buffers is customizable via `abm-ignore-buffers'."
     (user-error "The regexp to match against is empty"))
   (setq abm-recent-buffers (--remove (string-match-p regexp (car it)) abm-recent-buffers)))
 
+(defun abm-remove-nonexistant ()
+  "Remove all bookmarks which point to non-existing files.
+
+This *will* also check remote files accessed with TRAMP."
+  (interactive)
+  (setq abm-recent-buffers
+        (--filter (file-exists-p (cdr (assoc 'filename (cdr it)))) abm-recent-buffers)))
+
 (defun abm-save-to-file ()
   "Save visited and recent buffers to file.
 
