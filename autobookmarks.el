@@ -162,6 +162,10 @@ Additionally, before saving the data, it filters the
 `abm-recent-buffers' list and removes bookmarks older than
 `abm-old-bookmark-threshold'."
   (interactive)
+  ;; in case this is called before init finished we might overwrite
+  ;; the saved data, so load that first
+  (unless abm-recent-buffers
+    (abm-load-from-file))
   ;; remove too old bookmarks
   (setq abm-recent-buffers (--remove
                             (time-less-p
