@@ -182,6 +182,7 @@ Additionally, before saving the data, it filters the
                             abm-recent-buffers))
   (let ((print-level nil)
         (print-length nil))
+    (make-directory (file-name-directory abm-file) t)
     (with-temp-file abm-file
       (insert ";; This file is created automatically by autobookmarks.el\n\n")
       (insert (format "(setq abm-visited-buffers '%S)\n" abm-visited-buffers))
